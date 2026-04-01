@@ -1,4 +1,5 @@
 import subprocess
+import sys
 from urllib.parse import urlparse
 
 
@@ -81,7 +82,10 @@ def check_http(domain, port, scheme):
 # -------- MAIN EXECUTION -------- #
 
 def main():
-    user_input = input("Enter domain or URL: ").strip()
+    if len(sys.argv) > 1:
+        user_input = sys.argv[1]
+    else:
+        user_input = input("Enter domain or URL: ").strip()
 
     domain, port, scheme = parse_input(user_input)
 
