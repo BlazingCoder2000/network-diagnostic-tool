@@ -1,13 +1,18 @@
+import sys
 import subprocess
 from urllib.parse import urlparse
 
-# -------- INPUT PARSING -------- #
+# -------- INPUT HANDLING (CI SAFE) -------- #
 
-user_input = input("Enter domain or URL: ").strip()
+if len(sys.argv) > 1:
+    user_input = sys.argv[1]
+else:
+    user_input = input("Enter domain or URL: ").strip()
+
+# -------- INPUT PARSING -------- #
 
 parsed = urlparse(user_input)
 
-# If scheme missing (like google.com), urlparse puts it in path
 if parsed.netloc:
     host = parsed.netloc
     scheme = parsed.scheme if parsed.scheme else "http"
@@ -32,7 +37,7 @@ def check_dns(domain):
             text=True
         )
         return "ANSWER SECTION" in result.stdout
-    except:
+    except Exception:
         return False
 
 # -------- PING CHECK -------- #
@@ -45,7 +50,7 @@ def check_ping(domain):
             text=True
         )
         return result.returncode == 0
-    except:
+    except Exception:
         return False
 
 # -------- HTTP CHECK -------- #
@@ -70,7 +75,7 @@ def check_http(domain, port, scheme):
             return "SERVER ERROR"
         else:
             return "UNKNOWN"
-    except:
+    except Exception:
         return "FAIL"
 
 # -------- EXECUTION -------- #
@@ -100,9 +105,9 @@ elif not ping:
     print("Issue: Network unreachable or ICMP blocked")
 elif http in ["FAIL", "UNKNOWN"]:
     print("Issue: Service/port problem or application not responding")
-elif http in ["NOT FOUND"]:
+elif http == "NOT FOUND":
     print("Issue: Endpoint not found (404)")
-elif http in ["SERVER ERROR"]:
+elif http == "SERVER ERROR":
     print("Issue: Server-side error (500)")
 else:
     print("Status: Service is healthy")
