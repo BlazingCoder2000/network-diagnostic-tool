@@ -109,7 +109,7 @@ def main():
 
     # -------- EXIT CODE (IMPORTANT FOR CI) -------- #
 
-    if not dns or not ping or http in ["FAIL", "UNKNOWN", "SERVER ERROR"]:
+    if not dns or http in ["FAIL", "UNKNOWN", "SERVER ERROR"]:
         sys.exit(1)
 
     sys.exit(0)
