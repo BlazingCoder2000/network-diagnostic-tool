@@ -3,8 +3,6 @@ import sys
 from urllib.parse import urlparse
 
 
-# -------- INPUT PARSING -------- #
-
 def parse_input(user_input):
     parsed = urlparse(user_input)
 
@@ -24,8 +22,6 @@ def parse_input(user_input):
     return domain, port, scheme
 
 
-# -------- DNS CHECK -------- #
-
 def check_dns(domain):
     try:
         result = subprocess.run(
@@ -38,8 +34,6 @@ def check_dns(domain):
         return False
 
 
-# -------- PING CHECK -------- #
-
 def check_ping(domain):
     try:
         result = subprocess.run(
@@ -51,8 +45,6 @@ def check_ping(domain):
     except Exception:
         return False
 
-
-# -------- HTTP CHECK -------- #
 
 def check_http(domain, port, scheme):
     try:
@@ -78,8 +70,6 @@ def check_http(domain, port, scheme):
     except Exception:
         return "FAIL"
 
-
-# -------- MAIN EXECUTION -------- #
 
 def main():
     if len(sys.argv) > 1:
@@ -116,6 +106,13 @@ def main():
         print("Issue: Server-side error (500)")
     else:
         print("Status: Service is healthy")
+
+    # -------- EXIT CODE (IMPORTANT FOR CI) -------- #
+
+    if not dns or not ping or http in ["FAIL", "UNKNOWN", "SERVER ERROR"]:
+        sys.exit(1)
+
+    sys.exit(0)
 
 
 if __name__ == "__main__":
