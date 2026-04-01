@@ -1,31 +1,27 @@
-import sys
 import subprocess
 from urllib.parse import urlparse
 
-# -------- INPUT HANDLING (CI SAFE) -------- #
-
-if len(sys.argv) > 1:
-    user_input = sys.argv[1]
-else:
-    user_input = input("Enter domain or URL: ").strip()
 
 # -------- INPUT PARSING -------- #
 
-parsed = urlparse(user_input)
+def parse_input(user_input):
+    parsed = urlparse(user_input)
 
-if parsed.netloc:
-    host = parsed.netloc
-    scheme = parsed.scheme if parsed.scheme else "http"
-else:
-    host = parsed.path
-    scheme = "http"
+    if parsed.netloc:
+        host = parsed.netloc
+        scheme = parsed.scheme if parsed.scheme else "http"
+    else:
+        host = parsed.path
+        scheme = "http"
 
-# Extract domain and port
-if ":" in host:
-    domain, port = host.split(":")
-else:
-    domain = host
-    port = "80" if scheme == "http" else "443"
+    if ":" in host:
+        domain, port = host.split(":")
+    else:
+        domain = host
+        port = "80" if scheme == "http" else "443"
+
+    return domain, port, scheme
+
 
 # -------- DNS CHECK -------- #
 
@@ -40,6 +36,7 @@ def check_dns(domain):
     except Exception:
         return False
 
+
 # -------- PING CHECK -------- #
 
 def check_ping(domain):
@@ -52,6 +49,7 @@ def check_ping(domain):
         return result.returncode == 0
     except Exception:
         return False
+
 
 # -------- HTTP CHECK -------- #
 
@@ -67,47 +65,54 @@ def check_http(domain, port, scheme):
 
         if "200" in result.stdout:
             return "OK"
-        elif "301" in result.stdout or "302" in result.stdout:
+        if "301" in result.stdout or "302" in result.stdout:
             return "REDIRECT"
-        elif "404" in result.stdout:
+        if "404" in result.stdout:
             return "NOT FOUND"
-        elif "500" in result.stdout:
+        if "500" in result.stdout:
             return "SERVER ERROR"
-        else:
-            return "UNKNOWN"
+
+        return "UNKNOWN"
+
     except Exception:
         return "FAIL"
 
-# -------- EXECUTION -------- #
 
-dns = check_dns(domain)
-ping = check_ping(domain)
-http = check_http(domain, port, scheme)
+# -------- MAIN EXECUTION -------- #
 
-# -------- OUTPUT -------- #
+def main():
+    user_input = input("Enter domain or URL: ").strip()
 
-print("\n--- RESULT ---")
-print(f"Domain: {domain}")
-print(f"Port: {port}")
-print(f"Protocol: {scheme.upper()}")
+    domain, port, scheme = parse_input(user_input)
 
-print(f"DNS: {'OK' if dns else 'FAIL'}")
-print(f"PING: {'OK' if ping else 'FAIL'}")
-print(f"HTTP: {http}")
+    dns = check_dns(domain)
+    ping = check_ping(domain)
+    http = check_http(domain, port, scheme)
 
-# -------- DIAGNOSIS -------- #
+    print("\n--- RESULT ---")
+    print(f"Domain: {domain}")
+    print(f"Port: {port}")
+    print(f"Protocol: {scheme.upper()}")
 
-print("\n--- DIAGNOSIS ---")
+    print(f"DNS: {'OK' if dns else 'FAIL'}")
+    print(f"PING: {'OK' if ping else 'FAIL'}")
+    print(f"HTTP: {http}")
 
-if not dns:
-    print("Issue: DNS failure (domain not resolved)")
-elif not ping:
-    print("Issue: Network unreachable or ICMP blocked")
-elif http in ["FAIL", "UNKNOWN"]:
-    print("Issue: Service/port problem or application not responding")
-elif http == "NOT FOUND":
-    print("Issue: Endpoint not found (404)")
-elif http == "SERVER ERROR":
-    print("Issue: Server-side error (500)")
-else:
-    print("Status: Service is healthy")
+    print("\n--- DIAGNOSIS ---")
+
+    if not dns:
+        print("Issue: DNS failure (domain not resolved)")
+    elif not ping:
+        print("Issue: Network unreachable or ICMP blocked")
+    elif http in ["FAIL", "UNKNOWN"]:
+        print("Issue: Service/port problem or application not responding")
+    elif http == "NOT FOUND":
+        print("Issue: Endpoint not found (404)")
+    elif http == "SERVER ERROR":
+        print("Issue: Server-side error (500)")
+    else:
+        print("Status: Service is healthy")
+
+
+if __name__ == "__main__":
+    main()
