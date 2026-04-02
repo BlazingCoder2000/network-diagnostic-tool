@@ -1,4 +1,4 @@
-name: CI Pipeline (Failure Test)
+name: CI Pipeline
 
 on:
   push:
@@ -9,27 +9,32 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1️⃣ Checkout code
       - name: Checkout code
         uses: actions/checkout@v3
 
+      # 2️⃣ Setup Python
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: "3.10"
 
+      # 3️⃣ Install dependencies
       - name: Install dependencies
         run: |
           pip install flake8 pytest
 
+      # 4️⃣ Linting (code quality)
       - name: Run linting
         run: |
           flake8 .
 
+      # 5️⃣ Run tests (unit testing)
       - name: Run tests
         run: |
           pytest -v
 
-      # 🔥 INTENTIONAL FAILURE STEP
-      - name: Run application (FAIL CASE)
+      # 6️⃣ Run application (health check)
+      - name: Run application
         run: |
-          python3 network_checker.py invaliddomain12345.com
+          python3 network_checker.py google.com
