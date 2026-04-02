@@ -27,7 +27,8 @@ def check_dns(domain):
         result = subprocess.run(
             ["dig", domain],
             capture_output=True,
-            text=True
+            text=True,
+            timeout=5,
         )
         return "ANSWER SECTION" in result.stdout
     except Exception:
@@ -39,7 +40,8 @@ def check_ping(domain):
         result = subprocess.run(
             ["ping", "-c", "2", domain],
             capture_output=True,
-            text=True
+            text=True,
+            timeout=5,
         )
         return result.returncode == 0
     except Exception:
@@ -53,7 +55,8 @@ def check_http(domain, port, scheme):
         result = subprocess.run(
             ["curl", "-I", url],
             capture_output=True,
-            text=True
+            text=True,
+            timeout=5,
         )
 
         if "200" in result.stdout:
@@ -107,8 +110,7 @@ def main():
     else:
         print("Status: Service is healthy")
 
-    # -------- EXIT CODE (IMPORTANT FOR CI) -------- #
-
+    # Exit logic (CI-safe)
     if not dns or http in ["FAIL", "UNKNOWN", "SERVER ERROR"]:
         sys.exit(1)
 
