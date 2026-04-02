@@ -1,8 +1,8 @@
-name: CI Pipeline
+name: CI Pipeline (Failure Test)
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ main ]
 
 jobs:
   build:
@@ -19,12 +19,17 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install flake8
+          pip install flake8 pytest
 
       - name: Run linting
         run: |
           flake8 .
 
-      - name: Run application
+      - name: Run tests
         run: |
-          python3 network_checker.py google.com
+          pytest -v
+
+      # 🔥 INTENTIONAL FAILURE STEP
+      - name: Run application (FAIL CASE)
+        run: |
+          python3 network_checker.py invaliddomain12345.com
